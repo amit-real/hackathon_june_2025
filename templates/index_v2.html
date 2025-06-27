@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Paper Summarizer</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0f0f0f;
+            color: #e0e0e0;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            color: #999;
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #2a2a2a;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            color: #999;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            color: #4a9eff;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #4a9eff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 2px dashed #4a9eff;
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #0a0a0a;
+        }
+
+        .upload-area:hover {
+            border-color: #6ab7ff;
+            background: #111;
+        }
+
+        .upload-area.drag-over {
+            border-color: #6ab7ff;
+            background: #1a1a1a;
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            display: block;
+            opacity: 0.7;
+        }
+
+        .url-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 1px solid #333;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            background: #0a0a0a;
+            color: #e0e0e0;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background: #111;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4a9eff 0%, #3b82f6 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 158, 255, 0.4);
+        }
+
+        .btn:disabled {
+            background: #333;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .progress-section {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 30px;
+            border: 1px solid #2a2a2a;
+            display: none;
+        }
+
+        .progress-bar-container {
+            background: #0a0a0a;
+            border-radius: 8px;
+            padding: 3px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #4a9eff 0%, #3b82f6 100%);
+            height: 6px;
+            border-radius: 6px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-message {
+            text-align: center;
+            color: #999;
+            margin-top: 15px;
+            font-size: 0.95rem;
+        }
+
+        .results-section {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: none;
+            border: 1px solid #2a2a2a;
+        }
+
+        .summary-content {
+            color: #e0e0e0;
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+
+        .summary-content h2 {
+            color: #fff;
+            margin: 25px 0 15px;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .summary-content strong {
+            color: #4a9eff;
+        }
+
+        .summary-bullets {
+            margin-left: 0;
+            margin-bottom: 30px;
+            list-style: none;
+        }
+
+        .summary-bullets li {
+            margin-bottom: 12px;
+            padding-left: 24px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .summary-bullets li:before {
+            content: '•';
+            color: #4a9eff;
+            position: absolute;
+            left: 8px;
+            font-weight: bold;
+        }
+
+        .summary-list {
+            margin-left: 0;
+            margin-bottom: 30px;
+            list-style: none;
+            counter-reset: item;
+        }
+
+        .summary-list li {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            position: relative;
+            line-height: 1.6;
+            counter-increment: item;
+        }
+
+        .summary-list li:before {
+            content: counter(item) ".";
+            color: #4a9eff;
+            position: absolute;
+            left: 0;
+            font-weight: 600;
+        }
+
+        .error-message {
+            background: #ff4444;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+        }
+
+        .success-badge {
+            background: #00c851;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 15px;
+            color: #999;
+            font-size: 0.9rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #4a9eff;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Research Paper Summarizer</h1>
+            <p class="subtitle">Powered by Gemini 2.0 Flash with intelligent chunking</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="upload">Upload PDF</button>
+                <button class="tab-btn" data-tab="arxiv">arXiv URL</button>
+            </div>
+
+            <div class="tab-content active" id="upload-tab">
+                <div class="upload-area" id="uploadArea">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h3>Drop your PDF here or click to browse</h3>
+                    <p style="color: #666; margin-top: 10px;">Maximum file size: 50MB</p>
+                    <input type="file" id="fileInput" accept=".pdf">
+                    <div class="file-name" id="fileName"></div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="arxiv-tab">
+                <div class="url-input-group">
+                    <input type="text" class="url-input" id="arxivUrl" placeholder="Enter arXiv URL (e.g., https://arxiv.org/abs/2301.00001)">
+                    <button class="btn" id="summarizeUrlBtn">Summarize</button>
+                </div>
+                <p style="margin-top: 15px; color: #666; font-size: 0.9rem;">
+                    Supports: arxiv.org/abs/XXXX.XXXXX or arxiv.org/pdf/XXXX.XXXXX
+                </p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="progress-section" id="progressSection">
+            <h3 style="text-align: center; margin-bottom: 20px;">Processing Paper</h3>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-message" id="progressMessage">Initializing...</div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <span class="success-badge">✓ Summary Complete</span>
+            <div class="summary-content" id="summaryContent"></div>
+            <div class="stats" id="summaryStats"></div>
+            <button class="btn" id="newPaperBtn" style="margin-top: 30px; width: 100%;">Summarize Another Paper</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Socket.IO
+        const socket = io();
+        
+        socket.on('connect', () => {
+            console.log('Connected to server');
+        });
+        
+        socket.on('progress', (data) => {
+            if (data.percentage) {
+                document.getElementById('progressBar').style.width = data.percentage + '%';
+            }
+            if (data.message) {
+                document.getElementById('progressMessage').textContent = data.message;
+            }
+        });
+
+        // Tab switching
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.getAttribute('data-tab');
+                
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+
+        // File upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const progressSection = document.getElementById('progressSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const uploadSection = document.querySelector('.upload-section');
+        const errorMessage = document.getElementById('errorMessage');
+        const summaryContent = document.getElementById('summaryContent');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.type !== 'application/pdf') {
+                showError('Please upload a PDF file');
+                return;
+            }
+
+            fileName.textContent = `Selected: ${file.name}`;
+            uploadFile(file);
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('paper', file);
+
+            showProgress();
+
+            fetch('/summarize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProgress();
+                if (data.success) {
+                    showResults(data.summary);
+                } else {
+                    showError(data.error || 'Failed to summarize paper');
+                }
+            })
+            .catch(error => {
+                hideProgress();
+                showError('An error occurred while processing the paper');
+                console.error('Error:', error);
+            });
+        }
+
+        // arXiv URL handling
+        const arxivUrl = document.getElementById('arxivUrl');
+        const summarizeUrlBtn = document.getElementById('summarizeUrlBtn');
+
+        summarizeUrlBtn.addEventListener('click', () => {
+            const url = arxivUrl.value.trim();
+            if (!url) {
+                showError('Please enter an arXiv URL');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('arxiv_url', url);
+
+            showProgress();
+
+            fetch('/summarize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideProgress();
+                if (data.success) {
+                    showResults(data.summary);
+                } else {
+                    showError(data.error || 'Failed to summarize paper');
+                }
+            })
+            .catch(error => {
+                hideProgress();
+                showError('An error occurred while processing the paper');
+                console.error('Error:', error);
+            });
+        });
+
+        // New paper button
+        document.getElementById('newPaperBtn').addEventListener('click', () => {
+            resultsSection.style.display = 'none';
+            uploadSection.style.display = 'block';
+            fileInput.value = '';
+            fileName.textContent = '';
+            arxivUrl.value = '';
+            errorMessage.style.display = 'none';
+            document.getElementById('progressBar').style.width = '0%';
+        });
+
+        function showProgress() {
+            uploadSection.style.display = 'none';
+            progressSection.style.display = 'block';
+            errorMessage.style.display = 'none';
+            document.getElementById('progressBar').style.width = '0%';
+            document.getElementById('progressMessage').textContent = 'Initializing...';
+        }
+
+        function hideProgress() {
+            progressSection.style.display = 'none';
+        }
+
+        function showResults(summary) {
+            resultsSection.style.display = 'block';
+            summaryContent.innerHTML = marked.parse(summary);
+            
+            // Add some stats
+            const bullets = summary.match(/•/g) || [];
+            const words = summary.split(/\s+/).length;
+            
+            document.getElementById('summaryStats').innerHTML = `
+                <div class="stat-item">
+                    <div class="stat-value">${bullets.length}</div>
+                    <div class="stat-label">Key Points</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${Math.round(words / 100) / 10}k</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">${MODEL}</div>
+                    <div class="stat-label">Model Used</div>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            uploadSection.style.display = 'block';
+            
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Add model info to UI
+        const MODEL = 'gemini-2.0-flash';
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</body>
+</html>

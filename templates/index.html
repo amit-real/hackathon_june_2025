@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Paper Summarizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+
+        .upload-section {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 12px 24px;
+            font-size: 1rem;
+            color: #7f8c8d;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.3s;
+        }
+
+        .tab-btn:hover {
+            color: #2c3e50;
+        }
+
+        .tab-btn.active {
+            color: #3498db;
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #3498db;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .upload-area {
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .upload-area:hover {
+            border-color: #2980b9;
+            background-color: #f8f9fa;
+        }
+
+        .upload-area.drag-over {
+            border-color: #2980b9;
+            background-color: #e8f4fd;
+        }
+
+        .upload-icon {
+            width: 64px;
+            height: 64px;
+            margin: 0 auto 20px;
+            display: block;
+        }
+
+        .url-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .url-input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .btn {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #2980b9;
+        }
+
+        .btn:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px;
+            display: none;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .summary-content {
+            color: #2c3e50;
+            line-height: 1.8;
+        }
+
+        .summary-content h2 {
+            color: #2c3e50;
+            margin: 20px 0 10px;
+            font-size: 1.3rem;
+        }
+
+        .summary-content strong {
+            color: #34495e;
+        }
+
+        .summary-content ul {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+
+        .summary-content li {
+            margin-bottom: 8px;
+        }
+
+        .error-message {
+            background-color: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            background-color: #27ae60;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .file-name {
+            margin-top: 10px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Research Paper Summarizer</h1>
+            <p class="subtitle">Get AI-powered summaries of academic papers</p>
+        </header>
+
+        <div class="upload-section">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="upload">Upload PDF</button>
+                <button class="tab-btn" data-tab="arxiv">arXiv URL</button>
+            </div>
+
+            <div class="tab-content active" id="upload-tab">
+                <div class="upload-area" id="uploadArea">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h3>Drop your PDF here or click to browse</h3>
+                    <p>Maximum file size: 50MB</p>
+                    <input type="file" id="fileInput" accept=".pdf">
+                    <div class="file-name" id="fileName"></div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="arxiv-tab">
+                <div class="url-input-group">
+                    <input type="text" class="url-input" id="arxivUrl" placeholder="Enter arXiv URL (e.g., https://arxiv.org/abs/2301.00001)">
+                    <button class="btn" id="summarizeUrlBtn">Summarize</button>
+                </div>
+                <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem;">
+                    Supports formats: arxiv.org/abs/XXXX.XXXXX or arxiv.org/pdf/XXXX.XXXXX
+                </p>
+            </div>
+
+            <div class="error-message" id="errorMessage"></div>
+        </div>
+
+        <div class="loading" id="loadingSection">
+            <div class="loader"></div>
+            <p>Analyzing paper and generating summary...</p>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <div class="success-message">Summary generated successfully!</div>
+            <div class="summary-content" id="summaryContent"></div>
+            <button class="btn" id="newPaperBtn" style="margin-top: 30px;">Summarize Another Paper</button>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.getAttribute('data-tab');
+                
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabContents.forEach(c => c.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+
+        // File upload
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const loadingSection = document.getElementById('loadingSection');
+        const resultsSection = document.getElementById('resultsSection');
+        const uploadSection = document.querySelector('.upload-section');
+        const errorMessage = document.getElementById('errorMessage');
+        const summaryContent = document.getElementById('summaryContent');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('drag-over');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.type !== 'application/pdf') {
+                showError('Please upload a PDF file');
+                return;
+            }
+
+            fileName.textContent = `Selected: ${file.name}`;
+            uploadFile(file);
+        }
+
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('paper', file);
+
+            showLoading();
+
+            fetch('/summarize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showResults(data.summary);
+                } else {
+                    showError(data.error || 'Failed to summarize paper');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('An error occurred while processing the paper');
+                console.error('Error:', error);
+            });
+        }
+
+        // arXiv URL handling
+        const arxivUrl = document.getElementById('arxivUrl');
+        const summarizeUrlBtn = document.getElementById('summarizeUrlBtn');
+
+        summarizeUrlBtn.addEventListener('click', () => {
+            const url = arxivUrl.value.trim();
+            if (!url) {
+                showError('Please enter an arXiv URL');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('arxiv_url', url);
+
+            showLoading();
+
+            fetch('/summarize', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideLoading();
+                if (data.success) {
+                    showResults(data.summary);
+                } else {
+                    showError(data.error || 'Failed to summarize paper');
+                }
+            })
+            .catch(error => {
+                hideLoading();
+                showError('An error occurred while processing the paper');
+                console.error('Error:', error);
+            });
+        });
+
+        // New paper button
+        document.getElementById('newPaperBtn').addEventListener('click', () => {
+            resultsSection.style.display = 'none';
+            uploadSection.style.display = 'block';
+            fileInput.value = '';
+            fileName.textContent = '';
+            arxivUrl.value = '';
+            errorMessage.style.display = 'none';
+        });
+
+        function showLoading() {
+            uploadSection.style.display = 'none';
+            loadingSection.style.display = 'block';
+            errorMessage.style.display = 'none';
+        }
+
+        function hideLoading() {
+            loadingSection.style.display = 'none';
+        }
+
+        function showResults(summary) {
+            resultsSection.style.display = 'block';
+            summaryContent.innerHTML = marked.parse(summary);
+        }
+
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+            uploadSection.style.display = 'block';
+            
+            setTimeout(() => {
+                errorMessage.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</body>
+</html>
