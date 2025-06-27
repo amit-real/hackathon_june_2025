@@ -67,6 +67,27 @@ If you prefer Infrastructure as Code, the project includes a `render.yaml` file.
 6. Add the GEMINI_API_KEY in the environment variables section
 7. Deploy
 
+## Troubleshooting Tiktoken Installation
+
+If you encounter errors installing `tiktoken` on Render (read-only file system error), use the simplified version:
+
+1. **Option 1: Use Dockerfile** (Recommended)
+   - Render will automatically detect and use the Dockerfile
+   - This bypasses the tiktoken issue
+
+2. **Option 2: Use Simple Version**
+   ```bash
+   # In your build command:
+   pip install -r requirements_minimal.txt
+   
+   # In your start command:
+   gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app_web_simple:app
+   ```
+
+3. **Option 3: Use word-based chunking**
+   - The `app_web_simple.py` uses word-based chunking instead of tiktoken
+   - This avoids the dependency entirely
+
 ## Important Notes
 
 ### Environment Variables
