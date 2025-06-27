@@ -1,16 +1,16 @@
 # 📄 Research Paper Summarizer
 
-A powerful web application that generates structured, multi-category summaries of academic papers using Google's Gemini 2.0 Flash model. Upload a PDF or provide an arXiv URL to get comprehensive insights in seconds.
+A powerful web application that generates structured, multi-category summaries of academic papers using Google's Gemini 2.5 Flash model. Upload a PDF or provide an arXiv URL to get comprehensive insights in seconds.
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![Flask](https://img.shields.io/badge/flask-3.0.0-green.svg)
-![Gemini](https://img.shields.io/badge/Gemini-2.0%20Flash-orange.svg)
+![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## ✨ Features
 
 - **📤 Dual Input Methods**: Upload PDF files directly or paste arXiv URLs
-- **🤖 AI-Powered Analysis**: Uses Google's Gemini 2.0 Flash for intelligent summarization
+- **🤖 AI-Powered Analysis**: Uses Google's Gemini 2.5 Flash for intelligent summarization
 - **📊 Structured Output**: Generates 5 categories of insights:
   - 🔹 **Key Takeaways**: Main findings and contributions
   - 🔸 **Use Cases**: Practical applications
@@ -76,8 +76,8 @@ FLASK_ENV=development  # or 'production'
 Edit these in `app_web.py`:
 
 ```python
-MODEL_NAME = "gemini-2.0-flash"  # AI model
-TOKENS_PER_CHUNK = 3000          # Max tokens per chunk
+MODEL_NAME = "gemini-2.5-flash"  # AI model
+TOKENS_PER_CHUNK = 10000          # Max tokens per chunk
 FINAL_BULLETS = 8                # Items per category
 ```
 

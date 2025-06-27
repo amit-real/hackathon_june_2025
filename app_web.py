@@ -33,10 +33,10 @@ socketio = SocketIO(app, cors_allowed_origins="*")
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # ---------- config ----------
-MODEL_NAME = "gemini-2.0-flash"     # Using Gemini model
-TOKENS_PER_CHUNK = 3000              # leave head-room under model context window
-FINAL_BULLETS = 8                    # how many bullets / items to keep
-TIMEOUT = 30                         # seconds for HTTP download
+MODEL_NAME = "gemini-2.5-flash"     # Using Gemini model
+TOKENS_PER_CHUNK = 10000              # leave head-room under model context window
+FINAL_BULLETS = 10                    # how many bullets / items to keep
+TIMEOUT = 60                         # seconds for HTTP download
 
 # Target JSON schema all prompts must return
 JSON_KEYS = [
