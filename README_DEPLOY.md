@@ -31,8 +31,8 @@ git push -u origin main
    - **Name**: paper-summarizer
    - **Runtime**: Python
    - **Branch**: main
-   - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app_web:app`
+   - **Build Command**: `pip install -r requirements_minimal.txt`
+   - **Start Command**: `gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:$PORT app_web_simple:app`
 
 ### 3. Set Environment Variables
 
