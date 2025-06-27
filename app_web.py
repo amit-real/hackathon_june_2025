@@ -49,7 +49,7 @@ JSON_KEYS = [
 # ----------------------------
 
 # Initialize Gemini via OpenAI-compatible endpoint
-GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', 'AIzaSyCNmPW416B7oyK7SCDVtTf41RurtgPlvpg')
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY', '')
 if GEMINI_API_KEY:
     try:
         client = OpenAI(

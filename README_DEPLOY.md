@@ -18,7 +18,7 @@ First, create a new GitHub repository and push your code:
 git init
 git add .
 git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/paper-summarizer.git
+git remote add origin https://github.com/amit-real/paper-summarizer.git
 git push -u origin main
 ```
 
@@ -28,7 +28,7 @@ git push -u origin main
 2. Click "New +" → "Web Service"
 3. Connect your GitHub repository
 4. Configure the service:
-   - **Name**: paper-summarizer (or your preferred name)
+   - **Name**: paper-summarizer
    - **Runtime**: Python
    - **Branch**: main
    - **Build Command**: `pip install -r requirements.txt`
